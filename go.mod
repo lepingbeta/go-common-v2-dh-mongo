@@ -1,6 +1,7 @@
 module github.com/lepingbeta/go-common-v2-dh-mongo
 
 replace (
+	github.com/lepingbeta/go-common-v2-dh-json => ../go-common-v2-dh-json
 	github.com/lepingbeta/go-common-v2-dh-log => ../go-common-v2-dh-log
 	github.com/lepingbeta/go-common-v2-dh-utils => ../go-common-v2-dh-utils
 )
@@ -8,6 +9,7 @@ replace (
 go 1.22.1
 
 require (
+	github.com/joho/godotenv v1.5.1
 	github.com/lepingbeta/go-common-v2-dh-log v0.0.0-20240507232657-0f30bdfd9492
 	github.com/lepingbeta/go-common-v2-dh-utils v0.0.0-00010101000000-000000000000
 	go.mongodb.org/mongo-driver v1.15.0
@@ -16,6 +18,7 @@ require (
 require (
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
+	github.com/lepingbeta/go-common-v2-dh-json v0.0.0-20240508004009-9396ce750a7f // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.2 // indirect
