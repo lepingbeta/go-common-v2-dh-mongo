@@ -93,7 +93,7 @@ func Update(collectionName, updateType string, filter interface{}, document inte
 	}
 
 	switch updateType {
-	case "UpdateOne":
+	case "UpdateOne", "softDelete":
 		var updateOpts []*options.UpdateOptions
 		for _, opt := range opts {
 			if uo, ok := opt.(*options.UpdateOptions); ok {
