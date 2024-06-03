@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -236,4 +237,28 @@ func (db *Database) Disconnect() error {
 		return db.client.Disconnect(context.Background())
 	}
 	return nil
+}
+
+// sortByMapKeys 将 map 的键排序并返回排序后的键的切片
+func sortByMapKeys(m map[string]interface{}) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+// mapToBsonD 将 map[string]interface{} 转换为 bson.D，键按字典序排序
+func MapToBsonD(m map[string]interface{}) (bson.D, error) {
+	sortedKeys := sortByMapKeys(m)
+	doc := make(bson.D, 0, len(m))
+
+	for _, key := range sortedKeys {
+		value := m[key]
+		elem := bson.E{Key: key, Value: value}
+		doc = append(doc, elem)
+	}
+
+	return doc, nil
 }
