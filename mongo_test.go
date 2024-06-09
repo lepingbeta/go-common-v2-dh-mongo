@@ -2,7 +2,7 @@
  * @Author       : Symphony zhangleping@cezhiqiu.com
  * @Date         : 2024-05-08 23:45:52
  * @LastEditors  : Symphony zhangleping@cezhiqiu.com
- * @LastEditTime : 2024-06-04 04:27:44
+ * @LastEditTime : 2024-06-10 03:17:22
  * @FilePath     : /v2/go-common-v2-dh-mongo/mongo_test.go
  * @Description  :
  *
@@ -20,6 +20,7 @@ import (
 	dhlog "github.com/lepingbeta/go-common-v2-dh-log"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var db *Database
@@ -42,6 +43,20 @@ func init() {
 func TestFindList(t *testing.T) {
 	filter := bson.M{}
 	r, _ := FindList("project", filter)
+	dhlog.Info(dhjson.JsonEncodeIndent(r))
+}
+
+func TestFindListPager(t *testing.T) {
+	filter := bson.M{}
+	r, _ := FindList("project", filter)
+	dhlog.Info(dhjson.JsonEncodeIndent(r))
+
+	optsFirstPage := options.Find().SetLimit(1).SetSkip(0)
+	r, _ = FindList("project", filter, optsFirstPage)
+	dhlog.Info(dhjson.JsonEncodeIndent(r))
+
+	optsSecondPage := options.Find().SetLimit(1).SetSkip(1)
+	r, _ = FindList("project", filter, optsSecondPage)
 	dhlog.Info(dhjson.JsonEncodeIndent(r))
 }
 

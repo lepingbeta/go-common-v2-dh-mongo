@@ -4,13 +4,11 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"sort"
 	"strings"
 	"sync"
 	"time"
 
 	dhlog "github.com/lepingbeta/go-common-v2-dh-log"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -68,151 +66,6 @@ func GetDatabase() *mongo.Database {
 	return GetInstance().GetClient().Database(databaseName)
 }
 
-// updateOne 更新数据 [start]
-func UpdateWithUpdateTime(collectionName, updateType string, filter interface{}, document interface{}, opts ...interface{}) (*mongo.UpdateResult, error) {
-	bsonD, err := Struct2BsonD(document)
-	if err != nil {
-		dhlog.Error(err.Error())
-		return nil, err
-	}
-	document = append(bsonD, bson.E{Key: "update_time", Value: time.Now().Format("2006-01-02 15:04:05")})
-	return Update(collectionName, updateType, filter, document, opts...)
-}
-
-func UpdateOneBsonD(collectionName, updateType string, filter interface{}, document bson.D, opts ...interface{}) (*mongo.UpdateResult, error) {
-	document = append(document, bson.E{Key: "update_time", Value: time.Now().Format("2006-01-02 15:04:05")})
-	return Update(collectionName, updateType, filter, document, opts...)
-}
-
-func Update(collectionName, updateType string, filter interface{}, document interface{}, opts ...interface{}) (*mongo.UpdateResult, error) {
-	collection := GetDatabase().Collection(collectionName)
-	ctx, cancel := context.WithTimeout(context.Background(), timeoutSec)
-	defer cancel()
-	update := bson.D{
-		{"$set", document},
-	}
-
-	switch updateType {
-	case "UpdateOne", "softDelete":
-		var updateOpts []*options.UpdateOptions
-		for _, opt := range opts {
-			if uo, ok := opt.(*options.UpdateOptions); ok {
-				updateOpts = append(updateOpts, uo)
-			} else {
-				return nil, fmt.Errorf("invalid option type for UpdateOne")
-			}
-		}
-		dhlog.Info("UpdateOne UpdateOne")
-		return collection.UpdateOne(ctx, filter, update, updateOpts...)
-	case "UpdateMany":
-		var updateOpts []*options.UpdateOptions
-		for _, opt := range opts {
-			if uo, ok := opt.(*options.UpdateOptions); ok {
-				updateOpts = append(updateOpts, uo)
-			} else {
-				return nil, fmt.Errorf("invalid option type for UpdateOne")
-			}
-		}
-		dhlog.Info("UpdateMany UpdateMany")
-		return collection.UpdateMany(ctx, filter, update, updateOpts...)
-	case "ReplaceOne":
-		var replaceOpts []*options.ReplaceOptions
-		for _, opt := range opts {
-			if ro, ok := opt.(*options.ReplaceOptions); ok {
-				replaceOpts = append(replaceOpts, ro)
-			} else {
-				return nil, fmt.Errorf("invalid option type for ReplaceOne")
-			}
-		}
-		dhlog.Info("ReplaceOne ReplaceOne")
-		return collection.ReplaceOne(ctx, filter, document, replaceOpts...)
-	default:
-		dhlog.Error("updateType 参数错误")
-		return nil, fmt.Errorf("updateType 参数错误")
-	}
-}
-
-// updateOne 更新数据 [end]
-
-// InsertOne 插入一条数据 [start]
-func InsertOne(collectionName string, document interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error) {
-	collection := GetDatabase().Collection(collectionName)
-	ctx, cancel := context.WithTimeout(context.Background(), timeoutSec)
-	defer cancel()
-	return collection.InsertOne(ctx, document, opts...)
-}
-
-func InsertOneBsonD(collectionName string, document bson.D, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error) {
-	document = append(document, bson.E{Key: "create_time", Value: time.Now().Format("2006-01-02 15:04:05")})
-	return InsertOne(collectionName, document, opts...)
-}
-
-func InsertOneWithCreateTime(collectionName string, document interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error) {
-	bsonD, err := Struct2BsonD(document)
-	if err != nil {
-		dhlog.Error(err.Error())
-		return nil, err
-	}
-	document = append(bsonD, bson.E{Key: "create_time", Value: time.Now().Format("2006-01-02 15:04:05")})
-	return InsertOne(collectionName, document, opts...)
-}
-
-// InsertOne 插入一条数据 [end]
-
-// 查找一条数据 [start]
-func FindOne(collectionName string, filter interface{}, opts ...*options.FindOneOptions) (bson.M, error) {
-	collection := GetDatabase().Collection(collectionName)
-	ctx, cancel := context.WithTimeout(context.Background(), timeoutSec)
-	defer cancel()
-
-	// 构建查询条件
-	var result bson.M
-	err := collection.FindOne(ctx, filter, opts...).Decode(&result)
-	if err != nil {
-		dhlog.Info(err.Error())
-		return nil, err
-	}
-
-	// 处理查询结果
-	dhlog.Info("查询结果：", result)
-	return result, err
-}
-
-// 查找一条数据 [end]
-
-// 查找多条数据 [start]
-func FindList(collectionName string, filter interface{}, opts ...*options.FindOptions) ([]bson.M, error) {
-	collection := GetDatabase().Collection(collectionName)
-	ctx, cancel := context.WithTimeout(context.Background(), timeoutSec)
-	defer cancel()
-
-	// 构建查询条件
-	var result bson.M
-	cur, err := collection.Find(ctx, filter, opts...)
-	if err != nil {
-		dhlog.Info(err.Error())
-		return nil, err
-	}
-	defer cur.Close(ctx)
-
-	var results []bson.M
-	for cur.Next(ctx) {
-		var result bson.M
-		err := cur.Decode(&result)
-		if err != nil {
-			dhlog.Error("解析文档失败：" + err.Error())
-			continue
-		}
-		results = append(results, result)
-	}
-
-	// 处理查询结果
-	dhlog.Info("查询结果：", result)
-	return results, err
-}
-
-// 查找多条数据 [end]
-
 func Count(collectionName string, filter interface{}, opts ...*options.CountOptions) (int64, error) {
 	collection := GetDatabase().Collection(collectionName)
 	ctx, cancel := context.WithTimeout(context.Background(), timeoutSec)
@@ -236,28 +89,4 @@ func (db *Database) Disconnect() error {
 		return db.client.Disconnect(context.Background())
 	}
 	return nil
-}
-
-// sortByMapKeys 将 map 的键排序并返回排序后的键的切片
-func sortByMapKeys(m map[string]interface{}) []string {
-	keys := make([]string, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	return keys
-}
-
-// mapToBsonD 将 map[string]interface{} 转换为 bson.D，键按字典序排序
-func MapToBsonD(m map[string]interface{}) (bson.D, error) {
-	sortedKeys := sortByMapKeys(m)
-	doc := make(bson.D, 0, len(m))
-
-	for _, key := range sortedKeys {
-		value := m[key]
-		elem := bson.E{Key: key, Value: value}
-		doc = append(doc, elem)
-	}
-
-	return doc, nil
 }

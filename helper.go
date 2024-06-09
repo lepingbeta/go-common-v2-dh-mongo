@@ -2,7 +2,7 @@
  * @Author       : Symphony zhangleping@cezhiqiu.com
  * @Date         : 2024-06-04 22:23:08
  * @LastEditors  : Symphony zhangleping@cezhiqiu.com
- * @LastEditTime : 2024-06-04 22:23:12
+ * @LastEditTime : 2024-06-10 01:37:12
  * @FilePath     : /v2/go-common-v2-dh-mongo/helper.go
  * @Description  :
  *
@@ -11,6 +11,8 @@
 package mongodb
 
 import (
+	"sort"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -65,4 +67,28 @@ func FilterBsonM(data bson.M, keepFields []string) bson.M {
 		}
 	}
 	return filteredData
+}
+
+// sortByMapKeys 将 map 的键排序并返回排序后的键的切片
+func sortByMapKeys(m map[string]interface{}) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+// mapToBsonD 将 map[string]interface{} 转换为 bson.D，键按字典序排序
+func MapToBsonD(m map[string]interface{}) (bson.D, error) {
+	sortedKeys := sortByMapKeys(m)
+	doc := make(bson.D, 0, len(m))
+
+	for _, key := range sortedKeys {
+		value := m[key]
+		elem := bson.E{Key: key, Value: value}
+		doc = append(doc, elem)
+	}
+
+	return doc, nil
 }
