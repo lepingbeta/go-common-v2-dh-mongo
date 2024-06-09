@@ -10,16 +10,18 @@ go 1.22.1
 
 require (
 	github.com/joho/godotenv v1.5.1
+	github.com/lepingbeta/go-common-v2-dh-json v0.0.0-20240518060951-a591de6cf4ec
 	github.com/lepingbeta/go-common-v2-dh-log v0.0.0-20240507232657-0f30bdfd9492
-	github.com/lepingbeta/go-common-v2-dh-utils v0.0.0-00010101000000-000000000000
+	github.com/stretchr/testify v1.9.0
 	go.mongodb.org/mongo-driver v1.15.0
 )
 
 require (
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
-	github.com/lepingbeta/go-common-v2-dh-json v0.0.0-20240508004009-9396ce750a7f // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.2 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect
@@ -27,4 +29,5 @@ require (
 	golang.org/x/crypto v0.17.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

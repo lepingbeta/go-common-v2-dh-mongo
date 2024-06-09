@@ -10,7 +10,6 @@ import (
 	"time"
 
 	dhlog "github.com/lepingbeta/go-common-v2-dh-log"
-	utils "github.com/lepingbeta/go-common-v2-dh-utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -70,8 +69,8 @@ func GetDatabase() *mongo.Database {
 }
 
 // updateOne 更新数据 [start]
-func UpdateOneWithUpdateTime(collectionName, updateType string, filter interface{}, document interface{}, opts ...interface{}) (*mongo.UpdateResult, error) {
-	bsonD, err := utils.Struct2BsonD(document)
+func UpdateWithUpdateTime(collectionName, updateType string, filter interface{}, document interface{}, opts ...interface{}) (*mongo.UpdateResult, error) {
+	bsonD, err := Struct2BsonD(document)
 	if err != nil {
 		dhlog.Error(err.Error())
 		return nil, err
@@ -149,7 +148,7 @@ func InsertOneBsonD(collectionName string, document bson.D, opts ...*options.Ins
 }
 
 func InsertOneWithCreateTime(collectionName string, document interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error) {
-	bsonD, err := utils.Struct2BsonD(document)
+	bsonD, err := Struct2BsonD(document)
 	if err != nil {
 		dhlog.Error(err.Error())
 		return nil, err
