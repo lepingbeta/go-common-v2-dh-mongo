@@ -2,7 +2,7 @@
  * @Author       : Symphony zhangleping@cezhiqiu.com
  * @Date         : 2024-06-04 22:23:08
  * @LastEditors  : Symphony zhangleping@cezhiqiu.com
- * @LastEditTime : 2024-06-10 01:37:12
+ * @LastEditTime : 2024-06-12 06:37:55
  * @FilePath     : /v2/go-common-v2-dh-mongo/helper.go
  * @Description  :
  *
@@ -11,7 +11,10 @@
 package mongodb
 
 import (
+	"fmt"
 	"sort"
+	"strconv"
+	"strings"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -91,4 +94,61 @@ func MapToBsonD(m map[string]interface{}) (bson.D, error) {
 	}
 
 	return doc, nil
+}
+
+// ParseSortString 将形如 "field1=1,field2=-1" 的字符串转换为 bson.M 映射
+func ParseSortString(sortString string) (bson.M, error) {
+	if len(strings.TrimSpace(sortString)) == 0 {
+		return nil, fmt.Errorf("is empty string")
+	}
+	sortClause := bson.M{}
+
+	// 分割字符串为字段和顺序对
+	parts := strings.Split(sortString, ",")
+
+	for _, part := range parts {
+		// 分离字段名和顺序
+		if _, err := strconv.Unquote("\"" + part); err == nil {
+			// 如果是 JSON 字符串格式，直接添加到 sortClause
+			sortClause[part] = 1
+			continue
+		}
+
+		pair := strings.Split(part, "=")
+		if len(pair) != 2 {
+			return nil, fmt.Errorf("invalid sort string format: %s", part)
+		}
+
+		fieldName, orderStr := pair[0], pair[1]
+
+		// 去除字段名可能的空格
+		fieldName = strings.TrimSpace(fieldName)
+
+		// 将顺序字符串转换为整数
+		order, err := strconv.Atoi(orderStr)
+		if err != nil {
+			return nil, fmt.Errorf("invalid order value: %s", orderStr)
+		}
+
+		if order != 1 && order != -1 {
+			return nil, fmt.Errorf("invalid order number: %s", orderStr)
+		}
+
+		// 将字段名和顺序添加到映射
+		sortClause[fieldName] = order
+	}
+
+	return sortClause, nil
+}
+
+// 判断bson.M中的键值是否存在
+func HasKey(m bson.M, key string) (ok bool) {
+	defer func() {
+		if r := recover(); r != nil {
+			ok = false
+		}
+	}()
+
+	_, ok = m[key]
+	return
 }

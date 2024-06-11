@@ -2,7 +2,7 @@
  * @Author       : Symphony zhangleping@cezhiqiu.com
  * @Date         : 2024-06-04 22:23:08
  * @LastEditors  : Symphony zhangleping@cezhiqiu.com
- * @LastEditTime : 2024-06-04 22:24:56
+ * @LastEditTime : 2024-06-12 06:37:24
  * @FilePath     : /v2/go-common-v2-dh-mongo/helper_test.go
  * @Description  :
  *
@@ -106,6 +106,124 @@ func TestStruct2BsonD(t *testing.T) {
 				// dhlog.Error("", got)
 				// dhlog.Error("", tt.want)
 				// fmt.Errorf("Struct2BsonD() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestParseSortString(t *testing.T) {
+	tests := []struct {
+		name        string
+		sortString  string
+		expected    bson.M
+		expectedErr bool
+	}{
+		{
+			name:        "Valid single field ascending",
+			sortString:  "field1=1",
+			expected:    bson.M{"field1": 1},
+			expectedErr: false,
+		},
+		{
+			name:        "Valid multiple fields",
+			sortString:  "field1=1,field2=-1",
+			expected:    bson.M{"field1": 1, "field2": -1},
+			expectedErr: false,
+		},
+		{
+			name:        "Invalid sort number",
+			sortString:  "field1=1,field2=-2",
+			expected:    bson.M{"field1": 1, "field2": -1},
+			expectedErr: true,
+		},
+		{
+			name:        "Invalid format",
+			sortString:  "invalidFormat",
+			expected:    nil,
+			expectedErr: true,
+		},
+		{
+			name:        "Invalid order value",
+			sortString:  "field1=abc",
+			expected:    nil,
+			expectedErr: true,
+		},
+		{
+			name:        "Empty string",
+			sortString:  "",
+			expected:    bson.M{},
+			expectedErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ParseSortString(tt.sortString)
+			dhlog.DebugAny(got)
+			if tt.expectedErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expected, got)
+			}
+		})
+	}
+}
+
+func TestHasKey(t *testing.T) {
+	type args struct {
+		m   bson.M
+		key string
+	}
+	tests := []struct {
+		name   string
+		args   args
+		wantOk bool
+	}{
+		// 测试用例：键存在
+		{
+			name: "key exists",
+			args: args{
+				m:   bson.M{"key1": "value1"},
+				key: "key1",
+			},
+			wantOk: true,
+		},
+		// 测试用例：键存在
+		{
+			name: "key exists",
+			args: args{
+				m:   bson.M{"key1": 123},
+				key: "key1",
+			},
+			wantOk: true,
+		},
+		// 测试用例：键不存在
+		{
+			name: "key does not exist",
+			args: args{
+				m:   bson.M{"key1": "value1"},
+				key: "key2",
+			},
+			wantOk: false,
+		},
+		// 测试用例：空的 bson.M
+		{
+			name: "empty bson.M",
+			args: args{
+				m:   bson.M{},
+				key: "key1",
+			},
+			wantOk: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotOk := HasKey(tt.args.m, tt.args.key)
+			dhlog.DebugAny(gotOk)
+			if gotOk != tt.wantOk {
+				t.Errorf("HasKey() gotOk = %v, want %v", gotOk, tt.wantOk)
 			}
 		})
 	}
