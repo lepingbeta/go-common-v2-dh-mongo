@@ -1,8 +1,8 @@
 /*
  * @Author       : Symphony zhangleping@cezhiqiu.com
  * @Date         : 2024-06-04 22:23:08
- * @LastEditors  : Symphony zhangleping@cezhiqiu.com
- * @LastEditTime : 2024-06-12 06:37:24
+ * @LastEditors: Symphony zhangleping@cezhiqiu.com
+ * @LastEditTime: 2024-08-15 20:10:52
  * @FilePath     : /v2/go-common-v2-dh-mongo/helper_test.go
  * @Description  :
  *
@@ -11,6 +11,7 @@
 package mongodb
 
 import (
+	"fmt"
 	"testing"
 
 	dhjson "github.com/lepingbeta/go-common-v2-dh-json"
@@ -227,4 +228,28 @@ func TestHasKey(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestDeepCopyBsonM(t *testing.T) {
+	// 原始bson.M对象
+	original := bson.M{
+		"name": "Alice",
+		"age":  30,
+		"address": bson.M{
+			"city":  "Wonderland",
+			"state": "Fantasy",
+		},
+		"hobbies": []interface{}{"reading", "chess"},
+	}
+
+	// 深拷贝
+	copy := DeepCopyBsonM(original)
+
+	// 修改原始对象
+	original["name"] = "Bob"
+	original["address"].(bson.M)["city"] = "Nowhere"
+	original["hobbies"].([]interface{})[0] = "cycling"
+
+	fmt.Println("Original:", original)
+	fmt.Println("Copy:", copy)
 }

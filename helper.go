@@ -1,8 +1,8 @@
 /*
  * @Author       : Symphony zhangleping@cezhiqiu.com
  * @Date         : 2024-06-04 22:23:08
- * @LastEditors  : Symphony zhangleping@cezhiqiu.com
- * @LastEditTime : 2024-06-12 06:37:55
+ * @LastEditors: Symphony zhangleping@cezhiqiu.com
+ * @LastEditTime: 2024-08-15 20:10:23
  * @FilePath     : /v2/go-common-v2-dh-mongo/helper.go
  * @Description  :
  *
@@ -151,4 +151,34 @@ func HasKey(m bson.M, key string) (ok bool) {
 
 	_, ok = m[key]
 	return
+}
+
+func DeepCopyBsonM(original bson.M) bson.M {
+	copy := bson.M{}
+	for key, value := range original {
+		switch v := value.(type) {
+		case bson.M:
+			copy[key] = DeepCopyBsonM(v)
+		case []interface{}:
+			copy[key] = DeepCopySlice(v)
+		default:
+			copy[key] = v
+		}
+	}
+	return copy
+}
+
+func DeepCopySlice(original []interface{}) []interface{} {
+	copy := make([]interface{}, len(original))
+	for i, value := range original {
+		switch v := value.(type) {
+		case bson.M:
+			copy[i] = DeepCopyBsonM(v)
+		case []interface{}:
+			copy[i] = DeepCopySlice(v)
+		default:
+			copy[i] = v
+		}
+	}
+	return copy
 }
